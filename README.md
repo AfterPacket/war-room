@@ -95,28 +95,65 @@ Built for analysts, journalists, researchers, and anyone who needs a real-time o
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- npm (or yarn / pnpm)
+
+You need two free tools installed before you begin:
+
+| Tool | What it is | Download |
+|------|-----------|----------|
+| **Node.js 18+** | JavaScript runtime that powers the app | [nodejs.org/en/download](https://nodejs.org/en/download) — choose the **LTS** installer for your OS |
+| **Git** | Version control tool used to download the code | [git-scm.com/downloads](https://git-scm.com/downloads) — choose your OS |
+
+> **Windows users:** during the Git installer, leave all options at their defaults and click Next through to the end.
+>
+> **Mac users:** if you have [Homebrew](https://brew.sh) installed you can run `brew install node git` instead.
+
+Once both are installed, open a terminal:
+- **Windows** — press `Win + R`, type `cmd`, press Enter
+- **Mac** — open **Terminal** (Applications → Utilities → Terminal)
+- **Linux** — open your terminal emulator
+
+Verify everything is ready:
+
+```bash
+node -v   # should print v18.x.x or higher
+git -v    # should print git version x.x.x
+```
 
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/war-room.git
+git clone https://github.com/AfterPacket/war-room.git
 cd war-room
 npm install
 ```
 
+> `npm install` downloads all dependencies — this may take a minute or two on first run.
+
 ### 2. Configure Environment
 
+**Windows (Command Prompt):**
+```cmd
+copy .env.local.example .env.local
+```
+
+**Mac / Linux:**
 ```bash
 cp .env.local.example .env.local
 ```
 
-Open `.env.local` and set `ENCRYPTION_SECRET` to a random 64-character hex string:
+Open the `.env.local` file in any text editor (Notepad on Windows, TextEdit on Mac) and set `ENCRYPTION_SECRET` to a random 64-character hex string. Generate one by running:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
+
+Copy the output and paste it as the value:
+
+```
+ENCRYPTION_SECRET=paste_your_generated_string_here
+```
+
+Save the file.
 
 ### 3. Run
 
@@ -124,7 +161,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 The app works immediately with **no API keys** — the map, markets ticker, and simulated tracking data are all available out of the box.
 
