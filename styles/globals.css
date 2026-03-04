@@ -1,0 +1,336 @@
+@import "tailwindcss";
+@import "react-grid-layout/css/styles.css";
+@import "react-resizable/css/styles.css";
+
+/* === WAR ROOM — COLOR TOKEN SYSTEM === */
+:root {
+  --bg-base:        #07080c;
+  --bg-surface:     #0f1117;
+  --bg-elevated:    #161a24;
+  --bg-overlay:     #1c2030;
+
+  --border-subtle:  #1e2330;
+  --border-active:  #2a3348;
+
+  --text-primary:   #e8eaed;
+  --text-secondary: #8b919e;
+  --text-tertiary:  #555b69;
+  --text-accent:    #4ade80;
+
+  --severity-critical: #ef4444;
+  --severity-high:     #f59e0b;
+  --severity-medium:   #eab308;
+  --severity-low:      #3b82f6;
+  --severity-ok:       #22c55e;
+
+  --font-data: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --text-xs:   11px;
+  --text-sm:   12px;
+  --text-base: 13px;
+  --text-lg:   15px;
+  --text-xl:   18px;
+}
+
+/* Matrix green theme */
+.theme-matrix-green {
+  --text-accent: #00ff41;
+  --bg-surface: #0a0f0a;
+  --border-subtle: #0a1a0a;
+  --border-active: #143314;
+}
+
+/* Midnight blue theme */
+.theme-midnight-blue {
+  --text-accent: #60a5fa;
+  --bg-surface: #0a0d17;
+  --border-subtle: #111827;
+  --border-active: #1e3a5f;
+}
+
+/* === BASE RESET === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* === CUSTOM SCROLLBARS === */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border-active); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+* { scrollbar-width: thin; scrollbar-color: var(--border-active) var(--bg-base); }
+
+/* === CRT SCANLINES === */
+body.scanlines::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.scanlines::after { display: none; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* === SEVERITY COLORS === */
+.severity-critical { color: var(--severity-critical); }
+.severity-high     { color: var(--severity-high); }
+.severity-medium   { color: var(--severity-medium); }
+.severity-low      { color: var(--severity-low); }
+
+/* === PULSE ANIMATION === */
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+/* === TICKER ANIMATION === */
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.ticker-track { animation: ticker-scroll 60s linear infinite; }
+.ticker-track:hover { animation-play-state: paused; }
+
+/* === MARKETS TICKER === */
+/* Reuses ticker-scroll keyframe (defined below in ticker section) but at a
+   slower pace to keep 16+ market items readable while scrolling. */
+.market-ticker-track { animation: ticker-scroll 110s linear infinite; }
+.market-ticker-track:hover { animation-play-state: paused; }
+
+/* === LOADING STATE === */
+@keyframes data-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+.acquiring { animation: data-pulse 1.5s ease-in-out infinite; }
+
+/* === PANEL HOVER GLOW === */
+.panel-container:hover {
+  box-shadow: 0 0 0 1px var(--border-active);
+}
+
+/* === BREAKING NEWS PULSE === */
+@keyframes critical-pulse {
+  0%, 100% { border-left-color: var(--severity-critical); }
+  50% { border-left-color: transparent; }
+}
+.breaking-news {
+  border-left: 2px solid var(--severity-critical);
+  animation: critical-pulse 1s ease-in-out infinite;
+}
+
+/* === MONOSPACE DATA CLASS === */
+.font-data { font-family: var(--font-data); }
+
+/* === REACT GRID LAYOUT === */
+.react-grid-layout { position: relative; }
+.react-grid-item { transition: all 200ms ease; transition-property: left, top, width, height; }
+.react-grid-item.cssTransforms { transition-property: transform, width, height; }
+.react-grid-item.resizing { transition: none; z-index: 100; will-change: width, height; }
+.react-grid-item.react-draggable-dragging { transition: none; z-index: 100; will-change: transform; }
+.react-grid-item > .react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.react-grid-item:hover > .react-resizable-handle { opacity: 0.5; }
+.react-grid-item > .react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--text-tertiary);
+  border-bottom: 2px solid var(--text-tertiary);
+}
+
+/* === MAPBOX GL === */
+.mapboxgl-ctrl-bottom-left,
+.mapboxgl-ctrl-bottom-right { display: none; }
+.mapboxgl-ctrl-logo { display: none !important; }
+
+/* === NEWS MAP POPUP === */
+/* Strip MapLibre's default white popup chrome */
+.news-popup .maplibregl-popup-content {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+.news-popup .maplibregl-popup-tip { display: none; }
+.news-popup .maplibregl-popup-close-button {
+  color: #555b69;
+  font-size: 14px;
+  right: 8px;
+  top: 8px;
+  z-index: 10;
+  line-height: 1;
+}
+.news-popup .maplibregl-popup-close-button:hover { color: #8b919e; }
+
+/* Inner card */
+.npi-wrap {
+  background: #0f1117;
+  border: 1px solid #1e2330;
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-family: var(--font-data);
+  color: var(--text-primary);
+  max-width: 280px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+}
+.npi-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.npi-icon  { font-size: 15px; }
+.npi-cat   { font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+.npi-time  { font-size: 9px; color: var(--text-tertiary); margin-left: auto; }
+.npi-title { font-size: 11px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+.npi-desc  { font-size: 10px; color: var(--text-secondary); line-height: 1.45; margin-bottom: 8px; }
+.npi-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #1e2330;
+  padding-top: 6px;
+  margin-top: 4px;
+}
+.npi-source { font-size: 9px; color: var(--text-tertiary); }
+.npi-link   { font-size: 9px; font-weight: 700; text-decoration: none; letter-spacing: 0.5px; }
+.npi-link:hover { opacity: 0.8; }
+
+
+/* Hide MapLibre attribution on cyber map too */
+.maplibregl-ctrl-bottom-left,
+.maplibregl-ctrl-bottom-right { display: none !important; }
+
+/* === AIRCRAFT POPUP === */
+.ac-popup .maplibregl-popup-content {
+  background: transparent; border: none; box-shadow: none; padding: 0;
+}
+.ac-popup .maplibregl-popup-tip { display: none; }
+.ac-popup .maplibregl-popup-close-button {
+  color: #555b69; font-size: 14px; right: 8px; top: 8px; z-index: 10; line-height: 1;
+}
+.ac-popup .maplibregl-popup-close-button:hover { color: #8b919e; }
+
+.acp-wrap {
+  background: #0f1117;
+  border: 1px solid #1e2330;
+  border-radius: 4px;
+  padding: 10px 14px 10px 12px;
+  font-family: var(--font-data);
+  color: var(--text-primary);
+  min-width: 220px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+}
+.ac-img-slot { margin: 0 -14px 8px -12px; }
+.ac-img {
+  width: 100%; max-height: 130px; object-fit: cover;
+  border-radius: 3px 3px 0 0; display: block;
+}
+.ac-img-loading {
+  font-size: 9px; color: var(--text-tertiary);
+  padding: 6px 0 2px; text-align: center;
+}
+.ac-img-credit {
+  font-size: 8px; color: var(--text-tertiary);
+  padding: 3px 6px; text-align: right;
+}
+.acp-hdr {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+}
+.acp-call    { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; flex: 1; }
+.acp-badge {
+  font-size: 8px; letter-spacing: 1px;
+  color: #60a5fa; border: 1px solid #60a5fa44;
+  padding: 0 4px; line-height: 14px;
+}
+.acp-country {
+  font-size: 9px; color: var(--text-secondary);
+  margin-bottom: 6px; letter-spacing: 0.3px;
+}
+.acp-row {
+  display: flex; justify-content: space-between; gap: 12px;
+  font-size: 10px; padding: 2px 0;
+  color: var(--text-secondary);
+}
+.acp-row span:last-child { color: var(--text-primary); font-weight: 600; }
+.acp-mono { font-size: 9px; letter-spacing: 0.5px; color: var(--text-tertiary) !important; }
+
+/* === SHIP POPUP === */
+.ship-popup .maplibregl-popup-content {
+  background: transparent; border: none; box-shadow: none; padding: 0;
+}
+.ship-popup .maplibregl-popup-tip { display: none; }
+.ship-popup .maplibregl-popup-close-button {
+  color: #555b69; font-size: 14px; right: 8px; top: 8px; z-index: 10; line-height: 1;
+}
+.ship-popup .maplibregl-popup-close-button:hover { color: #8b919e; }
+
+.spc-wrap {
+  background: #0f1117;
+  border: 1px solid #1e2330;
+  border-radius: 4px;
+  padding: 10px 14px 10px 12px;
+  font-family: var(--font-data);
+  color: var(--text-primary);
+  min-width: 220px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+}
+.spc-img-slot { margin: 0 -14px 8px -12px; }
+.spc-img {
+  width: 100%; max-height: 130px; object-fit: cover;
+  border-radius: 3px 3px 0 0; display: block;
+}
+.spc-hdr {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+}
+.spc-name { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; flex: 1; }
+.spc-type {
+  font-size: 8px; letter-spacing: 1px; font-weight: 700;
+  margin-bottom: 7px;
+}
+.spc-row {
+  display: flex; justify-content: space-between; gap: 12px;
+  font-size: 10px; padding: 2px 0;
+  color: var(--text-secondary);
+}
+.spc-row span:last-child { color: var(--text-primary); font-weight: 600; }
+.spc-mono { font-size: 9px; letter-spacing: 0.5px; color: var(--text-tertiary) !important; }

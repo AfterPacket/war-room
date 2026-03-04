@@ -36,6 +36,16 @@ yarn-error.log*
 # vercel
 .vercel
 
+# War Room data (encrypted API keys database)
+/.warroom-data/
+
+# Claude Code editor config (local only)
+/.claude/
+
+# Next.js name-clash folders (Windows OneDrive artifact)
+.next */
+.next (*
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
