@@ -6,6 +6,16 @@ Built for analysts, journalists, researchers, and anyone who needs a real-time o
 
 ---
 
+## Screenshots
+
+![Dashboard — live video grid, interactive map, and news feed](.github/screenshots/dashboard.png)
+
+![AI Situation Brief — executive intelligence summary from live headlines](.github/screenshots/ai-brief.png)
+
+![Settings — encrypted API key management](.github/screenshots/settings.png)
+
+---
+
 ## Features
 
 ### Live Video Grid
@@ -248,4 +258,4 @@ Pull requests are welcome. For major changes please open an issue first to discu
 
 ## License
 
-MIT
+[GPL-3.0](LICENSE)
